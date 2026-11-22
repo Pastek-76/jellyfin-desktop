@@ -2,13 +2,20 @@
 // Seule la version installée (NSIS) peut se mettre à jour ; la version portable
 // signale simplement qu'une nouvelle version existe.
 const { app, dialog, shell, Notification } = require('electron');
+const fs = require('fs');
+const path = require('path');
 const store = require('./store');
 
+// Le résolveur de modules d'Electron 45 refuse le nom « electron-updater » dans l'archive
+// asar : on charge donc directement son point d'entrée (repli sur le nom du paquet).
 let autoUpdater = null;
-try {
-  ({ autoUpdater } = require('electron-updater'));
-} catch {
-  autoUpdater = null;
+for (const id of ['electron-updater/out/main.js', 'electron-updater']) {
+  try {
+    ({ autoUpdater } = require(id));
+    break;
+  } catch {
+    autoUpdater = null;
+  }
 }
 
 const isPortable = !!process.env.PORTABLE_EXECUTABLE_DIR;
@@ -26,11 +33,13 @@ function onChange(cb) {
 
 function setup(getWindow) {
   if (!autoUpdater || !app.isPackaged) return;
+  // Fichier généré par electron-builder à partir de build.publish (package.json).
   try {
-    const pkg = require('../package.json');
-    const pub = [].concat((pkg.build && pkg.build.publish) || [])[0];
-    if (pub && pub.owner && pub.repo) releasesUrl = `https://github.com/${pub.owner}/${pub.repo}/releases/latest`;
-  } catch { /* */ }
+    const yml = fs.readFileSync(path.join(process.resourcesPath, 'app-update.yml'), 'utf8');
+    const owner = (yml.match(/^owner:\s*(\S+)/m) || [])[1];
+    const repo = (yml.match(/^repo:\s*(\S+)/m) || [])[1];
+    if (owner && repo) releasesUrl = `https://github.com/${owner}/${repo}/releases/latest`;
+  } catch { /* pas de publication configurée */ }
 
   autoUpdater.autoDownload = !isPortable;
   autoUpdater.autoInstallOnAppQuit = true;

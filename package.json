@@ -10,7 +10,7 @@
     "predist": "node scripts/fetch-mpv.js",
     "dist": "electron-builder --win",
     "dist:portable": "electron-builder --win portable",
-    "release": "node scripts/fetch-mpv.js && electron-builder --win --publish always"
+    "release": "node scripts/fetch-mpv.js && electron-builder --win nsis --publish always && electron-builder --win portable --publish always"
   },
   "keywords": [
     "jellyfin",
