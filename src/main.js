@@ -43,7 +43,7 @@ const discord = new DiscordPresence();
 
 const DEFAULT_SETTINGS = {
   mpvEnabled: true,
-  mpvFullscreen: true,
+  mpvFullscreen: false,
   discordEnabled: false,
   discordAppId: '',
   autoUpdate: true,
@@ -167,6 +167,10 @@ function createWindow() {
     store.set('window', { ...win.getNormalBounds(), maximized: win.isMaximized() });
     if (!isQuitting && tray && settings().closeToTray) {
       event.preventDefault();
+      // Une vidéo ne continue pas en arrière-plan une fois la fenêtre fermée
+      // (la musique, elle, continue : c'est l'intérêt de la zone de notification).
+      if (playback.state.active && playback.state.mediaType === 'Video') playback.command('stop');
+      mpv.stop().catch(() => {});
       hideToTray();
     }
   });

@@ -307,7 +307,15 @@ module.exports = function injectJellyfinDesktop(info) {
           this.events.trigger(this, 'error', [{ type: 'mediadecodeerror' }]);
           break;
         case 'ended':
-          this._onStopped();
+          if (this._stopped) break;
+          if (ev.reason === 'eof') {
+            // Fin naturelle du fichier : Jellyfin enchaîne l'élément suivant de la file.
+            this._onStopped();
+          } else {
+            // Arrêt volontaire (Échap, Q, fermeture de mpv) : on passe par le gestionnaire
+            // de lecture pour qu'il considère la lecture comme arrêtée, sans lancer la suite.
+            this.playbackManager.stop(this);
+          }
           break;
         case 'next':
           this.playbackManager.nextTrack(this);
