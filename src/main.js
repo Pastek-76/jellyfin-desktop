@@ -194,6 +194,26 @@ function createWindow() {
     mpv.stop().catch(() => {});
   });
 
+  // Plantage de la page (processus de rendu) : sinon la fenêtre resterait noire.
+  // On recharge automatiquement ; au-delà de 3 plantages en une minute, retour à l'écran
+  // de connexion pour éviter une boucle.
+  let crashes = [];
+  wc.on('render-process-gone', (_e, details) => {
+    if (details.reason === 'clean-exit') return;
+    playback.reset();
+    mpv.stop().catch(() => {});
+    const now = Date.now();
+    crashes = crashes.filter((t) => now - t < 60000);
+    crashes.push(now);
+    if (crashes.length > 3) {
+      showConnect(`La page Jellyfin a planté plusieurs fois (${details.reason}). Reconnectez-vous au serveur.`);
+      return;
+    }
+    const cur = servers.current();
+    if (cur) loadServer(cur);
+    else showConnect();
+  });
+
   // Serveur injoignable → écran de reconnexion automatique ; certificat refusé → écran de connexion.
   wc.on('did-fail-load', (_e, code, desc, url, isMainFrame) => {
     if (!isMainFrame || code === -3 /* ABORTED */ || url.startsWith('file:')) return;

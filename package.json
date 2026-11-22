@@ -1,7 +1,7 @@
 {
   "name": "jellyfin-desktop",
   "productName": "Jellyfin Desktop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Client de bureau pour Jellyfin : toutes les fonctionnalités du client web dans une application native.",
   "main": "src/main.js",
   "scripts": {
