@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Paramètres — Jellyfin Desktop</title>
+  <style>
+    :root { --bg:#101010; --card:#1c1c1e; --border:#2e2e33; --text:#f2f2f2; --muted:#9a9aa2; --accent:#00a4dc; --accent2:#aa5cc3; --ok:#4cc38a; --err:#e5534b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: var(--bg); color: var(--text); font: 14px/1.5 "Segoe UI", system-ui, sans-serif; padding: 24px 20px 32px; }
+    h1 { font-size: 20px; font-weight: 600; margin: 0 0 18px; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+    h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+    .row { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; }
+    .row + .row { border-top: 1px solid var(--border); }
+    .row .text { flex: 1; min-width: 0; }
+    .row .label { font-weight: 500; }
+    .row .hint { color: var(--muted); font-size: 12.5px; }
+    .switch { position: relative; width: 40px; height: 22px; flex: none; margin-top: 2px; }
+    .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .switch span { position: absolute; inset: 0; background: #3a3a40; border-radius: 22px; cursor: pointer; transition: background .15s; }
+    .switch span::after { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .15s; }
+    .switch input:checked + span { background: var(--accent); }
+    .switch input:checked + span::after { transform: translateX(18px); }
+    .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .switch input:disabled + span { opacity: .4; cursor: not-allowed; }
+    input[type=text] { width: 100%; margin-top: 6px; background: #141416; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: 13px Consolas, monospace; padding: 8px 10px; }
+    input[type=text]:focus { outline: none; border-color: var(--accent); }
+    input[type=text].invalid { border-color: var(--err); }
+    a { color: var(--accent); cursor: pointer; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ol { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; }
+    button { font: inherit; border-radius: 8px; padding: 7px 14px; cursor: pointer; background: transparent; border: 1px solid var(--border); color: var(--text); }
+    button:hover { border-color: var(--muted); }
+    button.primary { background: linear-gradient(135deg, var(--accent2), var(--accent)); border: none; color: #fff; font-weight: 600; }
+    .status { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .saved { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); background: #26262a; border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12.5px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .saved.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <h1>Paramètres</h1>
+
+  <section>
+    <h2>Lecture vidéo</h2>
+    <div class="row">
+      <div class="text">
+        <div class="label">Lire les vidéos avec mpv</div>
+        <div class="hint" id="mpv-hint">Lecture directe de presque tous les formats (HEVC, DTS, TrueHD, sous-titres ASS/PGS…) sans conversion par le serveur. La musique reste lue par le lecteur intégré.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="mpvEnabled"><span></span></label>
+    </div>
+    <div class="row">
+      <div class="text">
+        <div class="label">Plein écran au lancement d'une vidéo</div>
+        <div class="hint">Avec mpv : <b>F</b> ou double-clic pour basculer, <b>Échap</b> pour quitter le plein écran, <b>Q</b> pour arrêter.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="mpvFullscreen"><span></span></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Discord</h2>
+    <div class="row">
+      <div class="text">
+        <div class="label">Afficher ce que je regarde / écoute sur Discord</div>
+        <div class="hint">Nécessite l'application Discord ouverte sur ce PC.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="discordEnabled"><span></span></label>
+    </div>
+    <div class="row">
+      <div class="text">
+        <div class="label">Application ID Discord</div>
+        <input type="text" id="discordAppId" placeholder="ex. 1234567890123456789" inputmode="numeric" spellcheck="false" autocomplete="off">
+        <ol>
+          <li>Ouvrez le <a id="discord-portal">portail développeur Discord</a> et cliquez sur <b>New Application</b>.</li>
+          <li>Nommez-la <b>Jellyfin</b> (ce nom s'affiche dans votre statut).</li>
+          <li>Copiez l'<b>Application ID</b> et collez-le ici.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Mises à jour</h2>
+    <div class="row">
+      <div class="text">
+        <div class="label">Rechercher les mises à jour automatiquement</div>
+        <div class="hint">Au démarrage puis toutes les 6 heures.</div>
+      </div>
+      <label class="switch"><input type="checkbox" id="autoUpdate"><span></span></label>
+    </div>
+    <div class="row">
+      <div class="text">
+        <div class="label">Version <span id="version"></span></div>
+        <div class="status" id="update-status"></div>
+      </div>
+      <button id="check" type="button">Rechercher</button>
+      <button id="install" class="primary" type="button" hidden>Redémarrer et installer</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Zone de notification</h2>
+    <div class="row">
+      <div class="text"><div class="label">Fermer dans la zone de notification</div><div class="hint">Le bouton ✕ masque la fenêtre au lieu de quitter.</div></div>
+      <label class="switch"><input type="checkbox" id="closeToTray"><span></span></label>
+    </div>
+    <div class="row">
+      <div class="text"><div class="label">Réduire dans la zone de notification</div><div class="hint">Le bouton − masque aussi la fenêtre de la barre des tâches.</div></div>
+      <label class="switch"><input type="checkbox" id="minimizeToTray"><span></span></label>
+    </div>
+  </section>
+
+  <div class="saved" id="saved">Enregistré</div>
+  <script src="settings.js"></script>
+</body>
+</html>

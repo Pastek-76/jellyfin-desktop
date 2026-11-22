@@ -1,0 +1,73 @@
+{
+  "name": "jellyfin-desktop",
+  "productName": "Jellyfin Desktop",
+  "version": "1.1.0",
+  "description": "Client de bureau pour Jellyfin : toutes les fonctionnalités du client web dans une application native.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "fetch-mpv": "node scripts/fetch-mpv.js",
+    "predist": "node scripts/fetch-mpv.js",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable",
+    "release": "node scripts/fetch-mpv.js && electron-builder --win --publish always"
+  },
+  "keywords": [
+    "jellyfin",
+    "electron",
+    "media"
+  ],
+  "author": "Pastek-76",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pastek-76/jellyfin-desktop.git"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "7zip-bin": "^5.2.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "local.jellyfin.desktop",
+    "productName": "Jellyfin Desktop",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "build/thumbar/*.png",
+      "package.json"
+    ],
+    "extraResources": [
+      { "from": "vendor/mpv", "to": "mpv", "filter": ["**/*"] },
+      { "from": "mpv-config", "to": "mpv-config", "filter": ["**/*"] }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Pastek-76",
+        "repo": "jellyfin-desktop",
+        "releaseType": "release"
+      }
+    ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Jellyfin Desktop"
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
+  }
+}

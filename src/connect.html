@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>Jellyfin — Connexion au serveur</title>
+  <style>
+    :root {
+      --bg: #101010;
+      --card: #1c1c1e;
+      --card-hover: #26262a;
+      --border: #2e2e33;
+      --text: #f2f2f2;
+      --muted: #9a9aa2;
+      --accent: #00a4dc;
+      --accent2: #aa5cc3;
+      --danger: #e5534b;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(170, 92, 195, .18), transparent 60%),
+                  radial-gradient(1000px 600px at 110% 110%, rgba(0, 164, 220, .16), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px 16px;
+    }
+    main { width: 100%; max-width: 520px; }
+    header { text-align: center; margin-bottom: 28px; }
+    .logo {
+      width: 64px; height: 64px; margin: 0 auto 12px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: grid; place-items: center;
+    }
+    .logo svg { width: 30px; height: 30px; margin-left: 4px; }
+    h1 { font-size: 26px; font-weight: 600; margin: 0; }
+    header p { color: var(--muted); margin: 4px 0 0; }
+    section { margin-bottom: 24px; }
+    h2 {
+      font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); font-weight: 600; margin: 0 0 8px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .server {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; cursor: pointer; transition: background .15s, border-color .15s;
+      text-align: left; color: inherit; font: inherit; width: 100%;
+    }
+    .server:hover, .server:focus-visible { background: var(--card-hover); border-color: var(--accent); outline: none; }
+    .server .info { flex: 1; min-width: 0; }
+    .server .name { font-weight: 600; }
+    .server .url { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .remove {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px;
+    }
+    .remove:hover { color: var(--danger); background: rgba(229, 83, 75, .12); }
+    .empty { color: var(--muted); font-size: 14px; padding: 4px 2px; }
+    form { display: flex; gap: 8px; }
+    input {
+      flex: 1; min-width: 0;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font: inherit; padding: 12px 14px;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    button.primary {
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      border: none; border-radius: 10px; color: #fff; font: inherit; font-weight: 600;
+      padding: 0 20px; cursor: pointer;
+    }
+    button.primary:disabled { opacity: .6; cursor: progress; }
+    .link { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; text-transform: none; letter-spacing: 0; }
+    .hint { color: var(--muted); font-size: 13px; margin: 8px 2px 0; }
+    .error {
+      background: rgba(229, 83, 75, .12); border: 1px solid rgba(229, 83, 75, .4);
+      color: #ffb4ae; border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; font-size: 14px;
+    }
+    .spinner {
+      width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; display: inline-block; animation: spin .8s linear infinite; vertical-align: -2px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cert {
+      background: rgba(230, 170, 40, .08); border: 1px solid rgba(230, 170, 40, .45);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; font-size: 14px;
+    }
+    .cert-title { font-weight: 600; color: #f5c56b; margin-bottom: 4px; }
+    .cert p { margin: 0 0 10px; color: #d8d8de; }
+    .cert dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0 0 14px; }
+    .cert dt { color: var(--muted); }
+    .cert dd { margin: 0; overflow-wrap: anywhere; }
+    .mono { font-family: Consolas, monospace; font-size: 12px; }
+    .cert-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .cert-actions button { padding: 10px 16px; }
+    button.secondary {
+      background: transparent; border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font: inherit; cursor: pointer;
+    }
+    button.secondary:hover { border-color: var(--muted); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M6 3.5v17a1 1 0 0 0 1.5.86l14-8.5a1 1 0 0 0 0-1.72l-14-8.5A1 1 0 0 0 6 3.5z"/></svg>
+      </div>
+      <h1>Jellyfin Desktop</h1>
+      <p>Connectez-vous à votre serveur multimédia</p>
+    </header>
+
+    <div id="error" class="error" role="alert" hidden></div>
+
+    <div id="cert" class="cert" role="alertdialog" aria-labelledby="cert-title" hidden>
+      <div id="cert-title" class="cert-title">Certificat non vérifié</div>
+      <p>Le serveur <strong id="cert-host"></strong> utilise un certificat HTTPS auto-signé ou non reconnu.
+        Ne lui faites confiance que si vous êtes sûr qu'il s'agit bien de votre serveur.</p>
+      <dl>
+        <dt>Émis pour</dt><dd id="cert-subject"></dd>
+        <dt>Émis par</dt><dd id="cert-issuer"></dd>
+        <dt>Expire le</dt><dd id="cert-expiry"></dd>
+        <dt>Empreinte</dt><dd id="cert-fp" class="mono"></dd>
+      </dl>
+      <div class="cert-actions">
+        <button id="cert-cancel" class="secondary" type="button">Annuler</button>
+        <button id="cert-trust" class="primary" type="button">Faire confiance et se connecter</button>
+      </div>
+    </div>
+
+    <section id="saved-section" hidden>
+      <h2>Serveurs enregistrés</h2>
+      <div id="saved" class="list"></div>
+    </section>
+
+    <section>
+      <h2>
+        <span>Sur le réseau local</span>
+        <button id="rescan" class="link" type="button">Rechercher</button>
+      </h2>
+      <div id="found" class="list"></div>
+    </section>
+
+    <section>
+      <h2>Ajouter un serveur</h2>
+      <form id="form">
+        <input id="address" type="text" placeholder="ex. 192.168.1.10:8096 ou https://jellyfin.mondomaine.fr"
+               autocomplete="off" spellcheck="false" required>
+        <button id="submit" class="primary" type="submit">Connexion</button>
+      </form>
+      <p class="hint">Le port 8096 est essayé automatiquement si aucun port n'est indiqué.</p>
+    </section>
+  </main>
+  <script src="connect.js"></script>
+</body>
+</html>
